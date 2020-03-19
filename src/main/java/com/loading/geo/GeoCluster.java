@@ -29,12 +29,12 @@ public class GeoCluster {
      * @param minPts  半径内最小包含点数
      * @return 聚集结果
      */
-    public static List<List<GeoPoint>> dbscan(List<GeoPoint> points, double eps, int minPts) {
+    public static <T extends GeoPoint> List<List<T>> dbscan(List<T> points, double eps, int minPts) {
 
-        Map<GeoPoint, Integer> pointsToCluster = new HashMap<>();
-        List<GeoPoint> visitedPoints = new ArrayList<>();
+        Map<T, Integer> pointsToCluster = new HashMap<>();
+        List<T> visitedPoints = new ArrayList<>();
         int clusterNum = 1;
-        for (GeoPoint point : points) {
+        for (T point : points) {
 
             //选择一个unvisited点P
             if (!visitedPoints.contains(point)) {
@@ -43,7 +43,7 @@ public class GeoCluster {
                 visitedPoints.add(point);
 
                 //寻找P点eps范围内的所有点集合N
-                List<GeoPoint> nearPoints = getNearPoints(point, points, eps);
+                List<T> nearPoints = getNearPoints(point, points, eps);
 
                 //添加一个聚集C
                 pointsToCluster.put(point, clusterNum);
@@ -53,14 +53,14 @@ public class GeoCluster {
 
                     //遍历P集合N中unvisited点p
                     for (int i = 0; i < nearPoints.size(); i++) {
-                        GeoPoint nearPoint = nearPoints.get(i);
+                        T nearPoint = nearPoints.get(i);
                         if (!visitedPoints.contains(nearPoint)) {
 
                             //设置点p已访问
                             visitedPoints.add(nearPoint);
 
                             //寻找p点eps范围内的所有点集合
-                            List<GeoPoint> nearNearPoints = getNearPoints(nearPoint, points, eps);
+                            List<T> nearNearPoints = getNearPoints(nearPoint, points, eps);
 
                             //如果点p附近的点集合大于minPts，将这些点加入到集合N
                             if (nearNearPoints.size() >= minPts) {
@@ -79,8 +79,8 @@ public class GeoCluster {
         }
 
         //输出结果
-        Map<Integer, List<GeoPoint>> clusterToPoint = new HashMap<>();
-        for (Map.Entry<GeoPoint, Integer> entry : pointsToCluster.entrySet()) {
+        Map<Integer, List<T>> clusterToPoint = new HashMap<>();
+        for (Map.Entry<T, Integer> entry : pointsToCluster.entrySet()) {
             if (!clusterToPoint.containsKey(entry.getValue())) {
                 clusterToPoint.put(entry.getValue(), new ArrayList<>());
             }
@@ -89,9 +89,9 @@ public class GeoCluster {
         return new ArrayList<>(clusterToPoint.values());
     }
 
-    private static List<GeoPoint> getNearPoints(GeoPoint centerPoint, List<GeoPoint> points, double eps) {
-        List<GeoPoint> nearPoints = new ArrayList<>();
-        for (GeoPoint p : points) {
+    private static <T extends GeoPoint> List<T> getNearPoints(T centerPoint, List<T> points, double eps) {
+        List<T> nearPoints = new ArrayList<>();
+        for (T p : points) {
             double distance = getDistance(centerPoint, p);
             if (distance <= eps) {
                 nearPoints.add(p);
@@ -100,7 +100,7 @@ public class GeoCluster {
         return nearPoints;
     }
 
-    private static double getDistance(GeoPoint pointA, GeoPoint pointB) {
+    private static <T extends GeoPoint> double getDistance(T pointA, T pointB) {
         double radLat1 = rad(pointA.getLat());
         double radLat2 = rad(pointB.getLat());
         double a = radLat1 - radLat2;
